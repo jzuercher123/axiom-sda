@@ -1,1 +1,8 @@
 # LEO detection preset: Dark Sky Site
+name: Dark Sky Site
+description: Balanced sensitivity for rural or low-Bortle sites.
+detection:
+  snr_threshold: 4.5
+  min_track_frames: 4
+  exposure_ms: 250
+  gain: 180

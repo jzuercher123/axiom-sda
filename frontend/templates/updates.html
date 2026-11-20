@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Axiom SDA — System Updates</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Pinned Release & Rollback</h1>
+      <a href="/dashboard" class="text-sm text-indigo-400 hover:underline">&larr; Back to Cockpit</a>
+    </div>
+
+    {% if msg %}
+    <div class="p-3 rounded bg-indigo-950 border border-indigo-500 text-indigo-200 text-sm">
+      {{ msg }}
+    </div>
+    {% endif %}
+
+    <!-- Apply Pinned Update -->
+    <form method="post" action="/api/updates/apply" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-4">
+      <h2 class="text-lg font-semibold">Pinned Container Tags (<code>versions.env</code>)</h2>
+
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">AXIOM_CORE_TAG</label>
+        <input name="core_tag" value="{{ versions.get('AXIOM_CORE_TAG', 'v0.1.0') }}"
+               class="w-full p-2 rounded bg-slate-800 border border-slate-700 font-mono text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">AXIOM_AGENTS_TAG</label>
+        <input name="agents_tag" value="{{ versions.get('AXIOM_AGENTS_TAG', 'v0.1.0') }}"
+               class="w-full p-2 rounded bg-slate-800 border border-slate-700 font-mono text-sm" />
+      </div>
+
+      <button type="submit" class="w-full py-2.5 rounded bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm">
+        Backup & Apply Pinned Release
+      </button>
+    </form>
+
+    <!-- Rollback Panel -->
+    <div class="p-5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-semibold">Emergency Rollback</h2>
+        <p class="text-xs text-slate-400">
+          {% if has_backup %}
+            <code>versions.env.bak</code> is available for instant recovery.
+          {% else %}
+            No backup snapshot yet (created automatically on first update).
+          {% endif %}
+        </p>
+      </div>
+      <form method="post" action="/api/updates/rollback">
+        <button type="submit" {% if not has_backup %}disabled{% endif %}
+                class="px-4 py-2 rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-40 text-sm font-semibold">
+          Roll Back
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

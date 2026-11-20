@@ -1,1 +1,8 @@
 # LEO detection preset: Urban Light-Polluted Sky
+name: Urban Light-Polluted Sky
+description: Aggressive background subtraction for city/suburban skies.
+detection:
+  snr_threshold: 6.5
+  min_track_frames: 5
+  exposure_ms: 150
+  gain: 120

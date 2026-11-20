@@ -1,5 +1,8 @@
 fastapi
 uvicorn[standard]
 jinja2
+python-multipart
 pyyaml
 pyzmq
+pillow
+httpx

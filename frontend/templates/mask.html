@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Axiom SDA — Sky Mask Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+  <div class="max-w-3xl mx-auto space-y-5">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Visual Sky-Masking Tool</h1>
+      <a href="/" class="text-sm text-indigo-400 hover:underline">&larr; Back to Setup</a>
+    </div>
+
+    <p class="text-sm text-slate-400">
+      Paint over trees, rooftops, or streetlights in red. Masked regions will be ignored by LEO anomaly detection.
+    </p>
+
+    <div id="statusMsg" class="hidden p-3 rounded bg-emerald-900/60 border border-emerald-500 text-emerald-200 text-sm"></div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-slate-900 border border-slate-800">
+      <label class="text-sm text-slate-300 flex items-center gap-2">
+        Brush Size
+        <input id="brushSize" type="range" min="5" max="60" value="22" class="accent-indigo-500" />
+      </label>
+      <button id="modeBtn" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sm">Mode: Paint Mask</button>
+      <button id="clearBtn" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-sm">Clear</button>
+      <button id="saveBtn" class="ml-auto px-4 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold">Save Sky Mask</button>
+    </div>
+
+    <!-- Stacked Canvases -->
+    <div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-slate-800 select-none">
+      <canvas id="bgCanvas" width="640" height="480" class="w-full h-full block"></canvas>
+      <canvas id="drawCanvas" width="640" height="480" class="w-full h-full absolute inset-0 cursor-crosshair"></canvas>
+    </div>
+  </div>
+
+  <script src="/static/js/sky_mask.js"></script>
+</body>
+</html>

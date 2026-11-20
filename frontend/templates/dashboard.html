@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Axiom SDA — Researcher Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Top Nav -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold tracking-tight">Axiom SDA Cockpit</h1>
+      <div class="flex items-center gap-4 text-sm">
+        <a href="/" class="text-slate-400 hover:text-white">Setup</a>
+        <a href="/mask" class="text-slate-400 hover:text-white">Sky Mask</a>
+        <a href="/updates" class="text-slate-400 hover:text-white">Updates</a>
+        <form method="post" action="/api/events/simulate">
+          <button type="submit" class="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 font-semibold">
+            + Simulate Detection
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- System Health Bar -->
+    <div class="grid grid-cols-4 gap-4 p-4 rounded-lg bg-slate-900 border border-slate-800 text-sm">
+      <div>
+        <div class="text-slate-400">TLE Catalog</div>
+        <div class="font-mono text-emerald-400">{{ tle.object_count }} objects</div>
+      </div>
+      <div>
+        <div class="text-slate-400">Disk Free</div>
+        <div class="font-mono text-slate-200">{{ hw.disk_free_gb }} GB</div>
+      </div>
+      <div>
+        <div class="text-slate-400">Camera Sensor</div>
+        <div class="font-mono {{ 'text-emerald-400' if hw.camera_detected else 'text-amber-400' }}">
+          {{ 'Online' if hw.camera_detected else 'Dev Mode' }}
+        </div>
+      </div>
+      <div>
+        <div class="text-slate-400">ATECC608A Crypto</div>
+        <div class="font-mono {{ 'text-emerald-400' if hw.atecc608a_i2c_bus else 'text-amber-400' }}">
+          {{ 'Hardware Ready' if hw.atecc608a_i2c_bus else 'Dev Mode' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Feed -->
+    <div class="space-y-3">
+      <h2 class="text-lg font-semibold">Detected Uncataloged LEO Passes</h2>
+
+      {% if not events %}
+      <div class="p-8 rounded-lg bg-slate-900 border border-slate-800 text-center text-slate-400">
+        No detections logged yet. Click <strong>+ Simulate Detection</strong> to test the feed.
+      </div>
+      {% endif %}
+
+      {% for ev in events %}
+      <div class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="font-mono font-bold text-indigo-400">{{ ev.id }}</span>
+            <span class="text-xs font-mono text-slate-400">{{ ev.timestamp_utc }}</span>
+          </div>
+          {% if ev.attestation_valid %}
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/70 text-emerald-300 border border-emerald-600">
+            &#10003; Hardware Attested
+          </span>
+          {% else %}
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-900/70 text-rose-300 border border-rose-600">
+            &#10007; Unverified
+          </span>
+          {% endif %}
+        </div>
+
+        <p class="text-sm text-slate-200">{{ ev.summary }}</p>
+
+        <div class="flex items-center justify-between pt-2 text-xs text-slate-500 font-mono">
+          <span>SHA-256: {{ ev.signature_sha256[:24] }}...</span>
+          <a href="/api/events/{{ ev.id }}/export"
+             class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 font-sans font-semibold">
+            Download Academic Bundle (.zip)
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

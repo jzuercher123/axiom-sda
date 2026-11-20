@@ -1,1 +1,33 @@
 % LaTeX template for 1-click academic export
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\title{Axiom SDA Observation Brief: {{ event_id }}}
+\author{Observer Node: {{ observer_id }}}
+\date{ {{ timestamp_utc }} }
+
+\begin{document}
+\maketitle
+
+\section*{1. Event Summary}
+\textbf{Event ID:} \texttt{ {{ event_id }} } \\
+\textbf{UTC Timestamp:} \texttt{ {{ timestamp_utc }} } \\
+\textbf{Attestation Status:} {{ attestation_status }} \\
+
+\noindent {{ summary }}
+
+\section*{2. Site \& Sensor Metadata}
+\begin{itemize}
+  \item \textbf{Coordinates:} {{ latitude }}, {{ longitude }} (Elevation: {{ elevation_m }} m)
+  \item \textbf{Sensor Exposure / Gain:} {{ exposure_ms }} ms / {{ gain }}
+  \item \textbf{Primary FITS Artifact:} \texttt{ {{ fits_filename }} }
+\end{itemize}
+
+\section*{3. Cryptographic Chain of Custody}
+Raw telemetry frames were hashed and hardware-signed at capture via the ATECC608A secure element:
+\begin{verbatim}
+SHA-256: {{ signature_sha256 }}
+\end{verbatim}
+
+\end{document}

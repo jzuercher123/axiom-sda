@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Axiom SDA — Node Setup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <h1 class="text-3xl font-bold tracking-tight">Axiom SDA Setup</h1>
+
+    {% if saved %}
+    <div class="p-4 rounded bg-emerald-900/60 border border-emerald-500 text-emerald-200">
+      Configuration saved to <code>data/config/core_config.yaml</code> and <code>agent_config.yaml</code>.
+    </div>
+    {% endif %}
+
+    <!-- Hardware Check -->
+    <div class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+      <h2 class="text-lg font-semibold">1. Hardware Diagnostics</h2>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div>Platform: <span class="font-mono text-slate-300">{{ hw.platform }}</span></div>
+        <div>Disk Free: <span class="font-mono text-slate-300">{{ hw.disk_free_gb }} GB</span></div>
+        <div>Camera: <span class="font-mono {{ 'text-emerald-400' if hw.camera_detected else 'text-amber-400' }}">{{ 'Detected' if hw.camera_detected else 'Not Detected (Dev Mode)' }}</span></div>
+        <div>ATECC608A I2C: <span class="font-mono {{ 'text-emerald-400' if hw.atecc608a_i2c_bus else 'text-amber-400' }}">{{ 'Ready' if hw.atecc608a_i2c_bus else 'Not Detected (Dev Mode)' }}</span></div>
+      </div>
+    </div>
+
+    <!-- Site & Preset Form -->
+    <form method="post" action="/wizard/save" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-4">
+      <h2 class="text-lg font-semibold">2. Observatory & LEO Profile</h2>
+
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Observer / Node ID</label>
+        <input name="observer_id" required placeholder="OBS-IL-01" class="w-full p-2 rounded bg-slate-800 border border-slate-700" />
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Latitude</label>
+          <input name="latitude" type="number" step="any" required placeholder="40.4842" class="w-full p-2 rounded bg-slate-800 border border-slate-700" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Longitude</label>
+          <input name="longitude" type="number" step="any" required placeholder="-88.9937" class="w-full p-2 rounded bg-slate-800 border border-slate-700" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Elevation (m)</label>
+          <input name="elevation_m" type="number" step="any" value="250" class="w-full p-2 rounded bg-slate-800 border border-slate-700" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">LEO Detection Profile</label>
+        <select name="profile_key" class="w-full p-2 rounded bg-slate-800 border border-slate-700">
+          {% for key, p in presets.items() %}
+          <option value="{{ key }}">{{ p.name }} — {{ p.description }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-400 mb-1">Space-Track.org Username (Optional — defaults to CelesTrak)</label>
+        <input name="spacetrack_user" placeholder="Leave blank for public CelesTrak" class="w-full p-2 rounded bg-slate-800 border border-slate-700" />
+      </div>
+
+      <button type="submit" class="w-full py-2.5 rounded bg-indigo-600 hover:bg-indigo-500 font-semibold">
+        Save Node Configuration
+      </button>
+    </form>
+  </div>
+</body>
+</html>

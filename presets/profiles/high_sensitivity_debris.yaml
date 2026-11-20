@@ -1,1 +1,8 @@
 # LEO detection preset: High-Sensitivity Debris
+name: High-Sensitivity Debris
+description: Maximum gain for faint, fast-moving LEO orbital debris.
+detection:
+  snr_threshold: 3.5
+  min_track_frames: 3
+  exposure_ms: 300
+  gain: 240
