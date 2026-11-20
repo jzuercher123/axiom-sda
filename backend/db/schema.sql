@@ -1,0 +1,1 @@
+-- SQLite (WAL mode) schema for event index & system state
