@@ -2,7 +2,6 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from backend.routers import hardware, wizard, masking, events
 from backend.services.zmq_listener import listen_for_agent_events
 from backend.routers import hardware, wizard, masking, events, updates
 

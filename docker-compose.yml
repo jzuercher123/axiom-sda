@@ -1,28 +1,33 @@
-# Pinned orchestration for axiom-core, axiom-agents, and axiom-sda backend
 services:
   axiom-core:
-    image: ${AXIOM_CORE_IMAGE}:${AXIOM_CORE_TAG}
+    image: ${AXIOM_CORE_IMAGE:-axiom-core}:${AXIOM_CORE_TAG:-1.0.0}
+    build:
+      context: ${AXIOM_KERNEL_PATH:-../axiom_kernel}
+      dockerfile: Dockerfile
     container_name: axiom-core
     restart: unless-stopped
-    devices:
-      - /dev/i2c-1:/dev/i2c-1       # ATECC608A hardware crypto chip
-      - /dev/video0:/dev/video0     # Sony STARVIS IMX462 camera
     volumes:
-      - ${AXIOM_DATA_DIR}:/data
+      - ${AXIOM_DATA_DIR:-./data}:/data
     networks:
       - axiom-net
 
   axiom-agents:
-    image: ${AXIOM_AGENTS_IMAGE}:${AXIOM_AGENTS_TAG}
+    image: ${AXIOM_AGENTS_IMAGE:-axiom-agents}:${AXIOM_AGENTS_TAG:-1.0.0}
+    build:
+      context: ${AXIOM_AGENTS_PATH:-../axiom_agents}
+      dockerfile: Dockerfile
     container_name: axiom-agents
     restart: unless-stopped
     depends_on:
       - axiom-core
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - ZMQ_CORE_ENDPOINT=tcp://axiom-core:5555
       - ZMQ_UI_PUB_ENDPOINT=tcp://*:5556
+      - OLLAMA_HOST=http://host.docker.internal:11434
     volumes:
-      - ${AXIOM_DATA_DIR}:/data
+      - ${AXIOM_DATA_DIR:-./data}:/data
     networks:
       - axiom-net
 
@@ -32,16 +37,15 @@ services:
       dockerfile: backend/Dockerfile
     container_name: axiom-sda
     restart: unless-stopped
+    depends_on:
+      - axiom-agents
     ports:
       - "8000:8000"
-    devices:
-      - /dev/i2c-1:/dev/i2c-1
-      - /dev/video0:/dev/video0
     environment:
       - AXIOM_DATA_DIR=/data
       - ZMQ_AGENT_SUB_ENDPOINT=tcp://axiom-agents:5556
     volumes:
-      - ${AXIOM_DATA_DIR}:/data
+      - ${AXIOM_DATA_DIR:-./data}:/data
     networks:
       - axiom-net
 
