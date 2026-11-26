@@ -7,39 +7,34 @@ import uuid
 import zmq
 import zmq.asyncio
 from backend.db.database import get_conn
+from backend.services.node_config import load_node_config
+from pathlib import Path
 
 logger = logging.getLogger("axiom.zmq")
 
 ZMQ_ENDPOINT = os.getenv("ZMQ_AGENT_SUB_ENDPOINT", "tcp://axiom-agents:5556")
 
-async def listen_for_agent_events(stop_event: asyncio.Event) -> None:
-    """Subscribes to axiom-agents ZMQ PUB socket and logs detections to SQLite."""
-    ctx = zmq.asyncio.Context.instance()
-    sock = ctx.socket(zmq.SUB)
-    sock.setsockopt_string(zmq.SUBSCRIBE, "")
-    sock.setsockopt(zmq.RCVTIMEO, 1000)  # 1s poll so shutdown is clean
+async def listen_for_agent_events(stop_event: asyncio.Event):
+    last_mode: str | None = None
+    last_replay: str | None = None
 
-    try:
-        sock.connect(ZMQ_ENDPOINT)
-        logger.info("ZMQ listener connected to %s", ZMQ_ENDPOINT)
-    except Exception as exc:
-        logger.warning("ZMQ connect skipped (%s): %s", ZMQ_ENDPOINT, exc)
-        sock.close()
-        return
+    while not stop_event.is_set():
+        cfg = load_node_config()
+        mode = cfg.get("data_source", "synthetic")
+        replay_path = (cfg.get("replay_file_path") or "").strip()
 
-    try:
-        while not stop_event.is_set():
-            try:
-                raw = await sock.recv_string()
-                payload = json.loads(raw)
-                _store_event(payload)
-            except zmq.Again:
-                continue
-            except Exception as exc:
-                logger.error("Failed to process ZMQ event: %s", exc)
-    finally:
-        sock.close()
-        logger.info("ZMQ listener stopped.")
+        if mode == "replay" and (not replay_path or not Path(replay_path).is_file()):
+            if last_mode != "replay_fallback":
+                logger.warning(
+                    "Replay file missing or invalid (%s); falling back to synthetic mode.",
+                    replay_path or "<empty>",
+                )
+            mode = "synthetic"
+            last_mode = "replay_fallback"
+        elif mode != last_mode or replay_path != last_replay:
+            logger.info("Active data source mode: %s (replay_path=%s)", mode, replay_path or "none")
+            last_mode = mode
+            last_replay = replay_path
 
 def _store_event(payload: dict) -> None:
     event_id = payload.get("id") or f"EVT-{uuid.uuid4().hex[:8].upper()}"

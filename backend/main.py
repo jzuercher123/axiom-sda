@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.services.zmq_listener import listen_for_agent_events
-from backend.routers import hardware, wizard, masking, events, updates
+from backend.routers import hardware, wizard, masking, events, updates, diagnostics
 
 
 @asynccontextmanager
@@ -24,6 +24,7 @@ app.include_router(wizard.router)
 app.include_router(masking.router)
 app.include_router(events.router)
 app.include_router(updates.router)
+app.include_router(diagnostics.router)
 
 @app.get("/health")
 def health_check():

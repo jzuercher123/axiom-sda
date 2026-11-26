@@ -86,6 +86,119 @@
       </div>
       {% endfor %}
     </div>
+
+    <!-- Diagnostics & Service Logs -->
+    <div class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold">Diagnostics &amp; Service Logs</h2>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <select
+            id="log-file-select"
+            onchange="renderSelectedLog()"
+            class="px-2.5 py-1.5 rounded bg-slate-800 text-slate-100 border border-slate-700 font-mono"
+          >
+            <option value="axiom-sda.log">axiom-sda.log</option>
+            <option value="axiom-agents.log">axiom-agents.log</option>
+            <option value="axiom-core.log">axiom-core.log</option>
+            <option value="desktop.log">desktop.log</option>
+          </select>
+          <button
+            type="button"
+            onclick="fetchDiagnostics()"
+            class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold"
+          >
+            Refresh
+          </button>
+          <label class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-slate-800/70 border border-slate-700 text-slate-300 cursor-pointer">
+            <input type="checkbox" id="log-autorefresh" onchange="toggleAutoRefresh()" checked class="accent-indigo-500" />
+            Auto-refresh (3s)
+          </label>
+          <button
+            type="button"
+            onclick="copyCurrentLog()"
+            class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold"
+          >
+            Copy Log
+          </button>
+          <button
+            type="button"
+            onclick="openLogsFolder()"
+            class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 font-semibold"
+          >
+            Open Logs Folder
+          </button>
+        </div>
+      </div>
+
+      <div id="diag-meta" class="text-xs font-mono text-slate-400"></div>
+
+      <pre
+        id="log-output"
+        class="p-3.5 rounded bg-slate-950 border border-slate-800 max-h-72 overflow-y-auto font-mono text-xs text-slate-200 whitespace-pre-wrap break-words"
+      >Loading diagnostics...</pre>
+    </div>
   </div>
+
+  <script>
+    let latestDiagnostics = null;
+    let diagTimer = null;
+
+    function renderSelectedLog() {
+      const select = document.getElementById("log-file-select");
+      const output = document.getElementById("log-output");
+      const meta = document.getElementById("diag-meta");
+      if (!latestDiagnostics) return;
+
+      const chosen = select.value;
+      const lines = (latestDiagnostics.logs && latestDiagnostics.logs[chosen]) || [];
+      output.textContent = lines.length ? lines.join("\n") : `(No log lines yet for ${chosen})`;
+      output.scrollTop = output.scrollHeight;
+
+      const sourceMode = (latestDiagnostics.config && latestDiagnostics.config.data_source) || "synthetic";
+      meta.textContent = `Data Dir: ${latestDiagnostics.data_dir} | Mode: ${sourceMode}`;
+    }
+
+    async function fetchDiagnostics() {
+      try {
+        const res = await fetch("/api/diagnostics/summary?lines=150");
+        if (!res.ok) return;
+        latestDiagnostics = await res.json();
+        renderSelectedLog();
+      } catch (err) {
+        console.error("Diagnostics fetch failed:", err);
+      }
+    }
+
+    async function copyCurrentLog() {
+      const text = document.getElementById("log-output").textContent || "";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+    }
+
+    function openLogsFolder() {
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.open_folder) {
+        window.pywebview.api.open_folder("logs");
+      } else if (latestDiagnostics && latestDiagnostics.log_dir) {
+        alert(`Logs directory: ${latestDiagnostics.log_dir}`);
+      }
+    }
+
+    function toggleAutoRefresh() {
+      const enabled = document.getElementById("log-autorefresh").checked;
+      if (diagTimer) {
+        clearInterval(diagTimer);
+        diagTimer = null;
+      }
+      if (enabled) {
+        diagTimer = setInterval(fetchDiagnostics, 3000);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchDiagnostics();
+      toggleAutoRefresh();
+    });
+  </script>
 </body>
 </html>
