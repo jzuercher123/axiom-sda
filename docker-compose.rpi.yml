@@ -1,0 +1,10 @@
+services:
+  axiom-core:
+    devices:
+      - /dev/i2c-1:/dev/i2c-1       # ATECC608A hardware crypto chip
+      - /dev/video0:/dev/video0     # Sony STARVIS IMX462 camera
+
+  axiom-sda:
+    devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/video0:/dev/video0
